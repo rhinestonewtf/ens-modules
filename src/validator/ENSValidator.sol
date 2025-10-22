@@ -280,7 +280,7 @@ contract ENSValidator is ERC7579ValidatorBase {
         override
         returns (bytes4)
     {
-        // validate the signature with the config
+        // Validate with raw hash for EIP-712 signatures
         bool isValid = _validateSignatureWithConfig(msg.sender, hash, data);
 
         // return the result

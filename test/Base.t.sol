@@ -15,12 +15,16 @@ import { MODULE_TYPE_VALIDATOR } from "modulekit/accounts/common/interfaces/IERC
 import { IPermit2IntentExecutor } from "@rhinestone/compact-utils/src/executor/interfaces/IPermit2Intent.sol";
 import { Types } from "@rhinestone/compact-utils/src/types/OrderTypes.sol";
 import { SmartExecutionLib } from "@rhinestone/compact-utils/src/common/SmartExecutionLib.sol";
+import { IntentExecutorAdapter } from "@rhinestone/compact-utils/src/adapters/IntentExecutorAdapter.sol";
+import { EIP712TypeHashLib } from "@rhinestone/compact-utils/src/types/EIP712TypeHashLib.sol";
+import { IEmissary, IStatelessValidator } from "@rhinestone/compact-utils/src/emissary/Emissary.sol";
 
 contract BaseTest is CompactEnvironment {
     using ModuleKitHelpers for *;
 
     MockENS ens;
     ENSValidator multisig;
+    IntentExecutorAdapter adapter;
 
     Account browserECDSA;
     AccountInstance hca;
@@ -53,6 +57,17 @@ contract BaseTest is CompactEnvironment {
             module: address(multisig),
             data: initData
         });
+
+        // Set up emissary for hca with browserECDSA as the signer
+        // This enables cross-chain intents with the browserECDSA key
+        _setEmissaryWithCustomValidator(hca, browserECDSA, address(multisig));
+
+        // Deploy the IntentExecutorAdapter
+        adapter = new IntentExecutorAdapter(address(env.router), address(env.intentExecutor));
+
+        // Install the adapter for both function selectors on the router
+        _setFillRoute(adapter.handleFill_intentExecutor_handleCompactTargetOps.selector, address(adapter));
+        _setFillRoute(adapter.handleFill_intentExecutor_handlePermit2TargetOps.selector, address(adapter));
     }
 
     function _getEIP712Stubs_Permit2TargetOps(
@@ -71,10 +86,10 @@ contract BaseTest is CompactEnvironment {
 
         // Hash operations properly for the mandate
         Types.Operation memory preClaimOpsOperation = SmartExecutionLib.encode(
-            SmartExecutionLib.SigMode.EMISSARY_ERC1271, element.mandate.originOps
+            SmartExecutionLib.SigMode.ERC1271, element.mandate.originOps
         );
         Types.Operation memory destOpsOperation = SmartExecutionLib.encode(
-            SmartExecutionLib.SigMode.EMISSARY_ERC1271, element.mandate.destOps
+            SmartExecutionLib.SigMode.ERC1271, element.mandate.destOps
         );
 
         bytes32 preClaimOpsHash = this.jump_hashEIP712(preClaimOpsOperation);
@@ -99,5 +114,71 @@ contract BaseTest is CompactEnvironment {
             fillExpires: element.mandate.target.fillExpiry,
             qHash: keccak256(abi.encode(element.mandate.q))
         });
+    }
+
+    function _createPermit2Hash(
+        IPermit2IntentExecutor.EIP712Permit2Stub memory permit2Stub,
+        IPermit2IntentExecutor.EIP712Permit2MandateDestinationStub memory mandateStub,
+        Types.Operation memory targetOps
+    )
+        internal
+        returns (bytes32 permit2Hash)
+    {
+        // Replicate the executor's hash computation exactly
+        bytes32 mandateHash = EIP712TypeHashLib.hashMandateRaw({
+            targetAttributes: mandateStub.targetAttributesHash,
+            v: uint8(SmartExecutionLib.SigMode.ERC1271),
+            minGas: 0,
+            preClaimOpsHash: mandateStub.preClaimOpsHash,
+            destOpsHash: this.jump_hashEIP712(targetOps),
+            qHash: mandateStub.qHash
+        });
+
+        // Create the final permit2 hash exactly as the executor does
+        permit2Hash = EIP712TypeHashLib.hashPermit2({
+            tokenInHash: mandateStub.tokenInHash,
+            arbiter: mandateStub.arbiter,
+            nonce: permit2Stub.nonce,
+            expires: permit2Stub.expires,
+            mandate: mandateHash
+        });
+    }
+
+    function _setEmissaryWithCustomValidator(
+        AccountInstance storage instance,
+        Account storage signer,
+        address validatorAddr
+    )
+        internal
+        virtual
+    {
+        address account = instance.account;
+
+        uint256[] memory chainIds = new uint256[](3);
+        chainIds[0] = chains.originChain1;
+        chainIds[1] = chains.originChain2;
+        chainIds[2] = namechain;
+
+        address[] memory signers = new address[](1);
+        signers[0] = signer.addr;
+
+        IEmissary.EmissaryConfig memory config = IEmissary.EmissaryConfig({
+            configId: env.emissaryId,
+            allocator: address(env.allocator),
+            scope: env.scope,
+            resetPeriod: env.resetPeriod,
+            validator: IStatelessValidator(validatorAddr),
+            validatorConfig: abi.encode(uint256(1), signers)
+        });
+
+        IEmissary.EmissaryEnable memory enableData;
+        enableData.chainIndex = 0;
+        enableData.allChainIds = chainIds;
+        enableData.expires = block.timestamp + 1;
+        enableData.nonce = 1;
+
+        env.emissary.mock_setConfig(
+            account, env.emissaryId, env.lockTag, IStatelessValidator(validatorAddr), config.validatorConfig
+        );
     }
 }

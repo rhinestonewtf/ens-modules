@@ -3,22 +3,26 @@ pragma solidity ^0.8.23;
 
 import "../Base.t.sol";
 import { IETHRegistrarController } from "src/interfaces/IENSRegistrarController.sol";
+import { Execution } from "modulekit/integrations/ERC7579Exec.sol";
+import { MockENS } from "src/mocks/MockENS.sol";
+import { Target } from "@rhinestone/compact-utils/src/types/TheCompactStructs.sol";
 
 contract FlowTest is BaseTest {
-    function flow() public {
-        // TODO: Add missing variables: signature, adapter
+    using TestHelperLib for *;
 
+    function test_ensflow() public {
         // Frontend prepares registration
-        IETHRegistrarController.Registration memory registration = IETHRegistrarController.Registration({
-            label: "foobar",
-            owner: env.eoa.addr,
-            duration: 2 years,
-            secret: keccak256("supersecret"),
-            resolver: address(0),
-            data: new bytes[](0),
-            reverseRecord: 0,
-            referrer: bytes32(0)
-        });
+        IETHRegistrarController.Registration memory registration =
+            IETHRegistrarController.Registration({
+                label: "foobar",
+                owner: env.eoa.addr,
+                duration: 730 days, // 2 years
+                secret: keccak256("supersecret"),
+                resolver: address(0),
+                data: new bytes[](0),
+                reverseRecord: 0,
+                referrer: bytes32(0)
+            });
         // calculates commit hash
         bytes32 commitHash = ens.makeCommitment(registration);
 
@@ -35,7 +39,7 @@ contract FlowTest is BaseTest {
             .push(
                 Element({
                     arbiter: makeAddr("arbiter"),
-                    chainid: chains.originChain1,
+                    chainId: chains.originChain1,
                     idsAndAmounts: [toId(env.token1), 0.01 ether].into(),
                     mandate: Mandate({
                         target: Target({
@@ -50,7 +54,7 @@ contract FlowTest is BaseTest {
                         destOps: commit,
                         q: "",
                         minGas: 0,
-                        v: SmartExecutionLib.SigMode.EMISSARY_ERC1271
+                        v: SmartExecutionLib.SigMode.ERC1271
                     })
                 })
             );
@@ -65,10 +69,22 @@ contract FlowTest is BaseTest {
         Types.Operation memory targetOps = Types.Operation({
             data: abi.encodePacked(
                 SmartExecutionLib.Type.ERC7579,
-                SmartExecutionLib.SigMode.EMISSARY_ERC1271,
+                SmartExecutionLib.SigMode.ERC1271,
                 abi.encode(commit)
             )
         });
+
+        // Create the permit2 hash exactly as the executor will
+        bytes32 permit2Hash = _createPermit2Hash(permit2Stub, mandateStub, targetOps);
+
+        // Create proper digest using Environment.sol helper
+        bytes32 digest = _hashTypedDataPermit2(namechain, permit2Hash);
+
+        // Sign the digest directly with raw ECDSA (digest is already the final hash to sign)
+        bytes memory ecdsaSig = _signHashRaw(browserECDSA, digest);
+        // For ERC7579 ERC1271 mode, prepend the validator address (first 20 bytes)
+        bytes memory signature = abi.encodePacked(address(multisig), ecdsaSig);
+
         bytes memory executorCalldata =
             abi.encode(hca.account, permit2Stub, mandateStub, targetOps, signature);
 
@@ -79,7 +95,7 @@ contract FlowTest is BaseTest {
         );
 
         // Execute with proper signature - should work now
-        uint256 gasUsed = _fill(block.chainid, new bytes[](0), adapterCalldatas);
+        uint256 gasUsed = _fill(namechain, new bytes[](0), adapterCalldatas);
 
         // Register Intent
         // samechain intent with browserECDSA as signer
