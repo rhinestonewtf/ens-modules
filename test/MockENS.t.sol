@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import { Test } from "forge-std/Test.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
 import { IETHRegistrarController } from "src/interfaces/IENSRegistrarController.sol";
-import { MockERC20 } from "src/mocks/MockERC20.sol";
+import { MockERC20 } from "../src/mocks/MockERC20.sol";
 
 contract MockENSTest is Test {
     MockENS internal ens;

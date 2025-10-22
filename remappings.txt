@@ -15,11 +15,13 @@ ExcessivelySafeCall/=node_modules/excessively-safe-call/src/
 
 @erc7579/enumerablemap4337/=node_modules/@erc7579/enumerablemap4337/src/
 @openzeppelin/=node_modules/@openzeppelin/
+openzeppelin-contracts/=node_modules/@openzeppelin/
 ds-test/=node_modules/ds-test/src/
 forge-std/=node_modules/forge-std/src/
 solady/=node_modules/solady/src/
 solarray/=node_modules/solarray/src/
 @prb/math/=node_modules/@prb/math/src/
+tstorish/=node_modules/tstorish/src/
 
 @webauthn/=node_modules/webauthn-sol/src/
 FreshCryptoLib/=node_modules/FreshCryptoLib/solidity/src

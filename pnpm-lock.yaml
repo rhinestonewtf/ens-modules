@@ -14,6 +14,9 @@ importers:
       '@excessivelySafeCall':
         specifier: github:rhinestonewtf/ExcessivelySafeCall
         version: '@nomad-xyz/excessively-safe-call@https://codeload.github.com/rhinestonewtf/ExcessivelySafeCall/tar.gz/65293a3bc92f6d9a69eb0082780c36c772c2e455'
+      '@openzeppelin/contracts':
+        specifier: ^5.3.0
+        version: 5.4.0
       '@rhinestone/checknsignatures':
         specifier: github:rhinestonewtf/checknsignatures
         version: https://codeload.github.com/rhinestonewtf/checknsignatures/tar.gz/f8389c186fb58480a9a42d598adebaa1a557762d
@@ -29,6 +32,18 @@ importers:
       '@uniswap/the-compact':
         specifier: github:Uniswap/the-compact
         version: the-compact@https://codeload.github.com/Uniswap/the-compact/tar.gz/ac25e50dbfd51358f206919e649ff79b042a5dab
+      FreshCryptoLib:
+        specifier: github:rdubois-crypto/FreshCryptoLib
+        version: https://codeload.github.com/rdubois-crypto/FreshCryptoLib/tar.gz/8179e08cac72072bd260796633fec41fdfd5b441
+      solmate:
+        specifier: github:transmissions11/solmate
+        version: https://codeload.github.com/transmissions11/solmate/tar.gz/89365b880c4f3c786bdd453d4b8e8fe410344a69
+      tstorish:
+        specifier: github:ProjectOpenSea/tstorish
+        version: https://codeload.github.com/ProjectOpenSea/tstorish/tar.gz/e0dd75ed9fedfbbd3a226fdb0a57d3e78e5a2374
+      webauthn-sol:
+        specifier: github:rhinestonewtf/webauthn-sol
+        version: https://codeload.github.com/rhinestonewtf/webauthn-sol/tar.gz/00b5ba48bac39231dc4a95ba2763ecc02b779c39
 
 packages:
 
@@ -307,8 +322,8 @@ packages:
   '@openzeppelin/contracts@5.0.1':
     resolution: {integrity: sha512-yQJaT5HDp9hYOOp4jTYxMsR02gdFZFXhewX5HW9Jo4fsqSVqqyIO/xTHdWDaKX5a3pv1txmf076Lziz+sO7L1w==}
 
-  '@openzeppelin/contracts@5.1.0':
-    resolution: {integrity: sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==}
+  '@openzeppelin/contracts@5.4.0':
+    resolution: {integrity: sha512-eCYgWnLg6WO+X52I16TZt8uEjbtdkgLC0SUX/xnAksjjrQI4Xfn4iBRoI5j55dmlOhDv1Y7BoR3cU7e3WWhC6A==}
 
   '@pnpm/config.env-replace@1.1.0':
     resolution: {integrity: sha512-htyl8TWnKL7K/ESFa1oW2UB5lVDxuF5DpM7tBi6Hu2LNL3mWkIzNLG6N4zoCUP1lCKNxWy/3iu8mS8MvToGd6w==}
@@ -455,6 +470,10 @@ packages:
   '@uniswap/permit2@https://codeload.github.com/Uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219':
     resolution: {tarball: https://codeload.github.com/Uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219}
     version: 1.0.0
+
+  FreshCryptoLib@https://codeload.github.com/rdubois-crypto/FreshCryptoLib/tar.gz/8179e08cac72072bd260796633fec41fdfd5b441:
+    resolution: {tarball: https://codeload.github.com/rdubois-crypto/FreshCryptoLib/tar.gz/8179e08cac72072bd260796633fec41fdfd5b441}
+    version: 0.0.0
 
   abbrev@1.0.9:
     resolution: {integrity: sha512-LEyx4aLEC3x6T0UguF6YILf+ntvmOaWsVfENmIW0E9H09vKlLDGelMjjSm0jkDHALj8A8quZ/HapKNigzwge+Q==}
@@ -1753,6 +1772,10 @@ packages:
     peerDependencies:
       hardhat: ^2.11.0
 
+  solmate@https://codeload.github.com/transmissions11/solmate/tar.gz/89365b880c4f3c786bdd453d4b8e8fe410344a69:
+    resolution: {tarball: https://codeload.github.com/transmissions11/solmate/tar.gz/89365b880c4f3c786bdd453d4b8e8fe410344a69}
+    version: 6.8.0
+
   source-map-support@0.5.21:
     resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
 
@@ -1859,6 +1882,10 @@ packages:
   tsort@0.0.1:
     resolution: {integrity: sha512-Tyrf5mxF8Ofs1tNoxA13lFeZ2Zrbd6cKbuH3V+MQ5sb6DtBj5FjrXVsRWT8YvNAQTqNoz66dz1WsbigI22aEnw==}
 
+  tstorish@https://codeload.github.com/ProjectOpenSea/tstorish/tar.gz/e0dd75ed9fedfbbd3a226fdb0a57d3e78e5a2374:
+    resolution: {tarball: https://codeload.github.com/ProjectOpenSea/tstorish/tar.gz/e0dd75ed9fedfbbd3a226fdb0a57d3e78e5a2374}
+    version: 0.0.0
+
   tweetnacl-util@0.15.1:
     resolution: {integrity: sha512-RKJBIj8lySrShN4w6i/BonWp2Z/uxwC3h4y7xsRrpP59ZboCd0GpEVsOnMDYLMmKBpYhb5TgHzZXy7wTfYFBRw==}
 
@@ -1935,6 +1962,10 @@ packages:
   web3-utils@1.10.4:
     resolution: {integrity: sha512-tsu8FiKJLk2PzhDl9fXbGUWTkkVXYhtTA+SmEFkKft+9BgwLxfCRpU96sWv7ICC8zixBNd3JURVoiR3dUXgP8A==}
     engines: {node: '>=8.0.0'}
+
+  webauthn-sol@https://codeload.github.com/rhinestonewtf/webauthn-sol/tar.gz/00b5ba48bac39231dc4a95ba2763ecc02b779c39:
+    resolution: {tarball: https://codeload.github.com/rhinestonewtf/webauthn-sol/tar.gz/00b5ba48bac39231dc4a95ba2763ecc02b779c39}
+    version: 0.0.0
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -2437,7 +2468,7 @@ snapshots:
 
   '@openzeppelin/contracts@5.0.1': {}
 
-  '@openzeppelin/contracts@5.1.0': {}
+  '@openzeppelin/contracts@5.4.0': {}
 
   '@pnpm/config.env-replace@1.1.0': {}
 
@@ -2652,6 +2683,8 @@ snapshots:
 
   '@uniswap/permit2@https://codeload.github.com/Uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219': {}
 
+  FreshCryptoLib@https://codeload.github.com/rdubois-crypto/FreshCryptoLib/tar.gz/8179e08cac72072bd260796633fec41fdfd5b441: {}
+
   abbrev@1.0.9: {}
 
   accountabstraction@https://codeload.github.com/eth-infinitism/account-abstraction/tar.gz/7174d6d845618dbd11cee68eefa715f5263690b6(ethers@5.7.2)(hardhat@2.22.6(typescript@4.9.5))(lodash@4.17.21)(typechain@5.2.0(typescript@4.9.5)):
@@ -2683,7 +2716,7 @@ snapshots:
   accountabstraction@https://codeload.github.com/kopy-kat/account-abstraction/tar.gz/c5887153fbfe3ed09b2637cac39873f96d676f38(ethers@5.7.2)(hardhat@2.22.6(typescript@4.9.5))(lodash@4.17.21)(typechain@5.2.0(typescript@4.9.5)):
     dependencies:
       '@nomiclabs/hardhat-etherscan': 2.1.8(hardhat@2.22.6(typescript@4.9.5))
-      '@openzeppelin/contracts': 5.1.0
+      '@openzeppelin/contracts': 5.4.0
       '@thehubbleproject/bls': 0.5.1
       '@typechain/hardhat': 2.3.1(hardhat@2.22.6(typescript@4.9.5))(lodash@4.17.21)(typechain@5.2.0(typescript@4.9.5))
       '@types/debug': 4.1.12
@@ -4196,6 +4229,8 @@ snapshots:
       shelljs: 0.8.5
       web3-utils: 1.10.4
 
+  solmate@https://codeload.github.com/transmissions11/solmate/tar.gz/89365b880c4f3c786bdd453d4b8e8fe410344a69: {}
+
   source-map-support@0.5.21:
     dependencies:
       buffer-from: 1.1.2
@@ -4293,6 +4328,8 @@ snapshots:
 
   tsort@0.0.1: {}
 
+  tstorish@https://codeload.github.com/ProjectOpenSea/tstorish/tar.gz/e0dd75ed9fedfbbd3a226fdb0a57d3e78e5a2374: {}
+
   tweetnacl-util@0.15.1: {}
 
   tweetnacl@1.0.3: {}
@@ -4362,6 +4399,8 @@ snapshots:
       number-to-bn: 1.7.0
       randombytes: 2.1.0
       utf8: 3.0.0
+
+  webauthn-sol@https://codeload.github.com/rhinestonewtf/webauthn-sol/tar.gz/00b5ba48bac39231dc4a95ba2763ecc02b779c39: {}
 
   webidl-conversions@3.0.1: {}
 

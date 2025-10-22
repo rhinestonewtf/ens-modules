@@ -32,7 +32,11 @@
     "@rhinestone/compact-utils": "link:../compact-utils",
     "@uniswap/permit2": "github:Uniswap/permit2",
     "@uniswap/the-compact": "github:Uniswap/the-compact",
-    "@rhinestone/checknsignatures": "github:rhinestonewtf/checknsignatures"
+    "@rhinestone/checknsignatures": "github:rhinestonewtf/checknsignatures",
+    "solmate": "github:transmissions11/solmate",
+    "tstorish": "github:ProjectOpenSea/tstorish",
+    "FreshCryptoLib": "github:rdubois-crypto/FreshCryptoLib",
+    "@openzeppelin/contracts": "^5.3.0"
   },
   "files": [
     "src",
