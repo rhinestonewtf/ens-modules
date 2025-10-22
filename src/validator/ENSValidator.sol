@@ -12,7 +12,7 @@ import {
 } from "modulekit/module-bases/utils/ERC7579Constants.sol";
 import { OwnerExpirationLib } from "./OwnerExpirationLib.sol";
 
-contract OwnableValidator is ERC7579ValidatorBase {
+contract ENSValidator is ERC7579ValidatorBase {
     using LibSort for *;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using OwnerExpirationLib for bytes32;
@@ -80,7 +80,11 @@ contract OwnableValidator is ERC7579ValidatorBase {
         emit ThresholdSet(account, _threshold);
     }
 
-    function _findOwnerElement(address account, address owner) internal view returns (bool found, bytes32 element) {
+    function _findOwnerElement(address account, address owner)
+        internal
+        view
+        returns (bool found, bytes32 element)
+    {
         bytes32[] memory values = owners.values(account);
         for (uint256 i = 0; i < values.length; i++) {
             address ownerAddr = values[i].unpackOwner();
@@ -291,7 +295,7 @@ contract OwnableValidator is ERC7579ValidatorBase {
      *
      * @param hash bytes32 hash of the data
      * @param signature bytes data containing the signatures
-     * @param data bytes data containing the data (threshold and Owner[] array)
+     * @param data bytes data containing the data
      *
      * @return bool true if the signature is valid, false otherwise
      */
@@ -301,18 +305,16 @@ contract OwnableValidator is ERC7579ValidatorBase {
         returns (bool)
     {
         // decode the threshold and owners
-        (uint256 _threshold, Owner[] memory _owners) = abi.decode(data, (uint256, Owner[]));
+        (uint256 _threshold, address[] memory _owners) = abi.decode(data, (uint256, address[]));
+
+        // check that owners are sorted and uniquified
+        if (!_owners.isSortedAndUniquified()) {
+            return false;
+        }
 
         // check that threshold is set
         if (_threshold == 0) {
             return false;
-        }
-
-        // check that owners are sorted and uniquified by address
-        for (uint256 i = 1; i < _owners.length; i++) {
-            if (_owners[i].addr <= _owners[i - 1].addr) {
-                return false;
-            }
         }
 
         // recover the signers from the signatures
@@ -322,19 +324,13 @@ contract OwnableValidator is ERC7579ValidatorBase {
         signers.sort();
         signers.uniquifySorted();
 
-        // check if the signers are owners and not expired
+        // check if the signers are owners
         uint256 validSigners;
         uint256 signersLength = signers.length;
         for (uint256 i = 0; i < signersLength; i++) {
-            // Search for the signer in the owners array
-            for (uint256 j = 0; j < _owners.length; j++) {
-                if (_owners[j].addr == signers[i]) {
-                    // Check if not expired (expiration is 0 or in the future)
-                    if (_owners[j].expiration == 0 || block.timestamp < _owners[j].expiration) {
-                        validSigners++;
-                    }
-                    break;
-                }
+            (bool found,) = _owners.searchSorted(signers[i]);
+            if (found) {
+                validSigners++;
             }
         }
 

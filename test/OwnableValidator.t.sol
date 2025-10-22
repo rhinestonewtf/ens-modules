@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 import { Test } from "forge-std/Test.sol";
 import { RhinestoneModuleKit, ModuleKitHelpers, AccountInstance } from "modulekit/ModuleKit.sol";
 import { MODULE_TYPE_VALIDATOR } from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
-import { OwnableValidator } from "src/validator/OwnableValidator.sol";
+import { ENSValidator } from "src/validator/ENSValidator.sol";
 import { PackedUserOperation } from "modulekit/external/ERC4337.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
 import { LibSort } from "solady/utils/LibSort.sol";
@@ -16,7 +16,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     // account and modules
     AccountInstance internal instance;
-    OwnableValidator internal validator;
+    ENSValidator internal validator;
 
     // Test data
     uint256[] internal _ownerPks;
@@ -27,7 +27,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         init();
 
         // Create the validator
-        validator = new OwnableValidator();
+        validator = new ENSValidator();
         vm.label(address(validator), "OwnableValidator");
 
         // Set up test owners
@@ -46,7 +46,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         _owners.sort();
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -64,7 +64,11 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         });
     }
 
-    function _signUserOpHash(uint256 privateKey, bytes32 userOpHash) internal pure returns (bytes memory) {
+    function _signUserOpHash(uint256 privateKey, bytes32 userOpHash)
+        internal
+        pure
+        returns (bytes memory)
+    {
         bytes32 ethSignedHash = ECDSA.toEthSignedMessageHash(userOpHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, ethSignedHash);
         return abi.encodePacked(r, s, v);
@@ -87,7 +91,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         return ownersWithExp;
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     INSTALLATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -96,7 +100,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should add owners
         // it should emit event
 
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0); // 0 = no expiration
+        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0); //0
+            // = no expiration
         bytes memory data = abi.encode(_threshold, ownersWithExp);
 
         vm.expectEmit(true, true, true, true);
@@ -119,7 +124,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should set owners with expiration timestamps
 
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, expiration);
+        OwnableValidator.Owner[] memory ownersWithExp =
+            _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
 
         validator.onInstall(data);
@@ -162,7 +168,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         validator.onInstall(data);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     UNINSTALLATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -186,7 +192,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertEq(ownerCount, 0);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     INITIALIZATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -204,7 +210,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertTrue(isInitialized);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     UPDATE CONFIG TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -262,7 +268,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertEq(validator.getOwnersCount(address(this)), _owners.length - 1);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     EXPIRATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -291,7 +297,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_ValidateUserOpRevertWhen_OwnerIsExpired() public {
         // it should return VALIDATION_FAILED
         uint48 expiration = uint48(block.timestamp + 1 hours);
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, expiration);
+        OwnableValidator.Owner[] memory ownersWithExp =
+            _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
 
@@ -306,14 +313,16 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         bytes memory signature2 = _signUserOpHash(_ownerPks[1], userOpHash);
         userOp.signature = abi.encodePacked(signature1, signature2);
 
-        ERC7579ValidatorBase.ValidationData validationData = validator.validateUserOp(userOp, userOpHash);
+        ERC7579ValidatorBase.ValidationData validationData =
+            validator.validateUserOp(userOp, userOpHash);
         assertEq(ERC7579ValidatorBase.ValidationData.unwrap(validationData), 1); // VALIDATION_FAILED
     }
 
     function test_ValidateUserOpWhenOwnerIsNotExpired() public {
         // it should return VALIDATION_SUCCESS
         uint48 expiration = uint48(block.timestamp + 1 hours);
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, expiration);
+        OwnableValidator.Owner[] memory ownersWithExp =
+            _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
 
@@ -325,11 +334,12 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         bytes memory signature2 = _signUserOpHash(_ownerPks[1], userOpHash);
         userOp.signature = abi.encodePacked(signature1, signature2);
 
-        ERC7579ValidatorBase.ValidationData validationData = validator.validateUserOp(userOp, userOpHash);
+        ERC7579ValidatorBase.ValidationData validationData =
+            validator.validateUserOp(userOp, userOpHash);
         assertEq(ERC7579ValidatorBase.ValidationData.unwrap(validationData), 0); // VALIDATION_SUCCESS
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     SIGNATURE VALIDATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -339,7 +349,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         userOp.sender = address(this);
         bytes32 userOpHash = keccak256("userOpHash");
 
-        ERC7579ValidatorBase.ValidationData validationData = validator.validateUserOp(userOp, userOpHash);
+        ERC7579ValidatorBase.ValidationData validationData =
+            validator.validateUserOp(userOp, userOpHash);
         assertEq(ERC7579ValidatorBase.ValidationData.unwrap(validationData), 1); // VALIDATION_FAILED
     }
 
@@ -356,7 +367,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         bytes memory signature2 = _signUserOpHash(998, userOpHash);
         userOp.signature = abi.encodePacked(signature1, signature2);
 
-        ERC7579ValidatorBase.ValidationData validationData = validator.validateUserOp(userOp, userOpHash);
+        ERC7579ValidatorBase.ValidationData validationData =
+            validator.validateUserOp(userOp, userOpHash);
         assertEq(ERC7579ValidatorBase.ValidationData.unwrap(validationData), 1); // VALIDATION_FAILED
     }
 
@@ -389,11 +401,12 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         bytes memory signature2 = _signUserOpHash(_ownerPks[1], userOpHash);
         userOp.signature = abi.encodePacked(signature1, signature2);
 
-        ERC7579ValidatorBase.ValidationData validationData = validator.validateUserOp(userOp, userOpHash);
+        ERC7579ValidatorBase.ValidationData validationData =
+            validator.validateUserOp(userOp, userOpHash);
         assertEq(ERC7579ValidatorBase.ValidationData.unwrap(validationData), 0); // VALIDATION_SUCCESS
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     EIP-1271 TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -444,7 +457,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertEq(result, bytes4(0x1626ba7e)); // EIP1271_SUCCESS
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     STATELESS VALIDATION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -455,7 +468,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         duplicateAddrs[1] = _owners[0]; // duplicate
         duplicateAddrs[2] = _owners[1];
 
-        OwnableValidator.Owner[] memory duplicateOwners = _createOwnersWithExpiration(duplicateAddrs, 0);
+        OwnableValidator.Owner[] memory duplicateOwners =
+            _createOwnersWithExpiration(duplicateAddrs, 0);
 
         bytes32 hash = keccak256("hash");
         bytes memory signatures = "";
@@ -503,7 +517,10 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertFalse(isValid);
     }
 
-    function test_ValidateSignatureWithDataWhenUniqueSignaturesAreGreaterThanThreshold() public view {
+    function test_ValidateSignatureWithDataWhenUniqueSignaturesAreGreaterThanThreshold()
+        public
+        view
+    {
         // it should return true
         // Manually create sorted owners to ensure proper order
         // Sorted order: 0x2B5A (pk2), 0x6813 (pk3), 0x7E5F (pk1)
@@ -525,14 +542,15 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertTrue(isValid);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     VIEW FUNCTION TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
     function test_GetOwners() public {
         // it should return all owners with expiration
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, expiration);
+        OwnableValidator.Owner[] memory ownersWithExp =
+            _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
 
@@ -575,7 +593,8 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_GetOwnerExpiration() public {
         // it should return the expiration timestamp
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, expiration);
+        OwnableValidator.Owner[] memory ownersWithExp =
+            _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
 
@@ -583,7 +602,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         assertEq(retrievedExpiration, expiration);
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
+    /* //////////////////////////////////////////////////////////////////////////
                                     MODULE TYPE TESTS
     //////////////////////////////////////////////////////////////////////////*/
 
