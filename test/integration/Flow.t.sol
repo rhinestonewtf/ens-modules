@@ -78,7 +78,8 @@ contract FlowTest is BaseTest {
         bytes32 permit2Hash = _createPermit2Hash(permit2Stub, mandateStub, targetOps);
 
         // Create proper digest using Environment.sol helper
-        bytes32 digest = _hashTypedDataPermit2(namechain, permit2Hash);
+        // Use the notarized chain (element.chainId) not the fill chain (namechain)!
+        bytes32 digest = _hashTypedDataPermit2(chains.originChain1, permit2Hash);
 
         // Sign the digest directly with raw ECDSA (digest is already the final hash to sign)
         bytes memory ecdsaSig = _signHashRaw(browserECDSA, digest);
@@ -94,8 +95,13 @@ contract FlowTest is BaseTest {
             adapter.handleFill_intentExecutor_handlePermit2TargetOps, (executorCalldata)
         );
 
-        // Execute with proper signature - should work now
-        uint256 gasUsed = _fill(namechain, new bytes[](0), adapterCalldatas);
+        // Execute with proper signature
+        _fill(namechain, new bytes[](0), adapterCalldatas);
+
+        // Verify that the commit was actually executed on the MockENS contract
+        uint256 commitmentTimestamp = ens.commitments(commitHash);
+        assertGt(commitmentTimestamp, 0, "Commitment should have been recorded");
+        assertEq(commitmentTimestamp, block.timestamp, "Commitment timestamp should match current block");
 
         // Register Intent
         // samechain intent with browserECDSA as signer
