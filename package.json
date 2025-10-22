@@ -25,7 +25,14 @@
     "test:optimized": "pnpm run build:optimized && FOUNDRY_PROFILE=test-optimized forge test"
   },
   "dependencies": {
-    "@rhinestone/modulekit": "^0.5.1"
+    "@erc7579/enumerablemap4337": "github:erc7579/enumerablemap",
+    "@excessivelySafeCall": "github:rhinestonewtf/ExcessivelySafeCall",
+    "@rhinestone/modulekit": "github:rhinestonewtf/modulekit",
+    "webauthn-sol": "github:rhinestonewtf/webauthn-sol",
+    "@rhinestone/compact-utils": "link:../compact-utils",
+    "@uniswap/permit2": "github:Uniswap/permit2",
+    "@uniswap/the-compact": "github:Uniswap/the-compact",
+    "@rhinestone/checknsignatures": "github:rhinestonewtf/checknsignatures"
   },
   "files": [
     "src",

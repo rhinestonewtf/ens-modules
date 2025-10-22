@@ -2,15 +2,25 @@
 sentinellist/=node_modules/@rhinestone/sentinellist/src/
 erc4337-validation/=node_modules/@rhinestone/erc4337-validation/src/
 modulekit/=node_modules/@rhinestone/modulekit/src/
+checknsignatures/=node_modules/@rhinestone/checknsignatures/src/
 
 @ERC4337/=node_modules/@ERC4337/
 account-abstraction/=node_modules/@ERC4337/account-abstraction/contracts/
 account-abstraction-v0.6/=node_modules/@ERC4337/account-abstraction-v0.6/contracts/
+permit2/=node_modules/@uniswap/permit2/
+solmate/=node_modules/solmate/src/
+the-compact/=node_modules/@uniswap/the-compact/src/
+ExcessivelySafeCall/=node_modules/excessively-safe-call/src/
+@excessivelySafeCall/=node_modules/@excessivelySafeCall/src/
 
+@erc7579/enumerablemap4337/=node_modules/@erc7579/enumerablemap4337/src/
 @openzeppelin/=node_modules/@openzeppelin/
 ds-test/=node_modules/ds-test/src/
 forge-std/=node_modules/forge-std/src/
 solady/=node_modules/solady/src/
 solarray/=node_modules/solarray/src/
 @prb/math/=node_modules/@prb/math/src/
-ExcessivelySafeCall/=node_modules/excessively-safe-call/src/
+
+@webauthn/=node_modules/webauthn-sol/src/
+FreshCryptoLib/=node_modules/FreshCryptoLib/solidity/src
+node_modules/webauthn-sol/src/:openzeppelin-contracts/=node_modules/@openzeppelin/
