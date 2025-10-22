@@ -12,12 +12,19 @@ import { AccountInstance } from "modulekit/ModuleKit.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
 import { ENSValidator } from "src/validator/ENSValidator.sol";
 import { MODULE_TYPE_VALIDATOR } from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
-import { IPermit2IntentExecutor } from "@rhinestone/compact-utils/src/executor/interfaces/IPermit2Intent.sol";
+import {
+    IPermit2IntentExecutor
+} from "@rhinestone/compact-utils/src/executor/interfaces/IPermit2Intent.sol";
 import { Types } from "@rhinestone/compact-utils/src/types/OrderTypes.sol";
 import { SmartExecutionLib } from "@rhinestone/compact-utils/src/common/SmartExecutionLib.sol";
-import { IntentExecutorAdapter } from "@rhinestone/compact-utils/src/adapters/IntentExecutorAdapter.sol";
+import {
+    IntentExecutorAdapter
+} from "@rhinestone/compact-utils/src/adapters/IntentExecutorAdapter.sol";
 import { EIP712TypeHashLib } from "@rhinestone/compact-utils/src/types/EIP712TypeHashLib.sol";
-import { IEmissary, IStatelessValidator } from "@rhinestone/compact-utils/src/emissary/Emissary.sol";
+import {
+    IEmissary,
+    IStatelessValidator
+} from "@rhinestone/compact-utils/src/emissary/Emissary.sol";
 
 contract BaseTest is CompactEnvironment {
     using ModuleKitHelpers for *;
@@ -49,14 +56,14 @@ contract BaseTest is CompactEnvironment {
 
         // Install the ENS validator multisig on smartAccount1
         ENSValidator.Owner[] memory ownersWithExpiration = new ENSValidator.Owner[](1);
-        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); // 0 = no expiration
+        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); // 0
+            // = no expiration
 
         bytes memory initData = abi.encode(1, ownersWithExpiration); // threshold of 1
-        env.smartAccount1.installModule({
-            moduleTypeId: MODULE_TYPE_VALIDATOR,
-            module: address(multisig),
-            data: initData
-        });
+        env.smartAccount1
+            .installModule({
+                moduleTypeId: MODULE_TYPE_VALIDATOR, module: address(multisig), data: initData
+            });
 
         // Set up emissary for hca with browserECDSA as the signer
         // This enables cross-chain intents with the browserECDSA key
@@ -66,9 +73,15 @@ contract BaseTest is CompactEnvironment {
         adapter = new IntentExecutorAdapter(address(env.router), address(env.intentExecutor));
 
         // Install the adapter for all three function selectors on the router
-        _setFillRoute(adapter.handleFill_intentExecutor_handleCompactTargetOps.selector, address(adapter));
-        _setFillRoute(adapter.handleFill_intentExecutor_handlePermit2TargetOps.selector, address(adapter));
-        _setFillRoute(adapter.handleFill_intentExecutor_executeMultichainOps.selector, address(adapter));
+        _setFillRoute(
+            adapter.handleFill_intentExecutor_handleCompactTargetOps.selector, address(adapter)
+        );
+        _setFillRoute(
+            adapter.handleFill_intentExecutor_handlePermit2TargetOps.selector, address(adapter)
+        );
+        _setFillRoute(
+            adapter.handleFill_intentExecutor_executeMultichainOps.selector, address(adapter)
+        );
     }
 
     function _getEIP712Stubs_Permit2TargetOps(
@@ -89,9 +102,8 @@ contract BaseTest is CompactEnvironment {
         Types.Operation memory preClaimOpsOperation = SmartExecutionLib.encode(
             SmartExecutionLib.SigMode.ERC1271, element.mandate.originOps
         );
-        Types.Operation memory destOpsOperation = SmartExecutionLib.encode(
-            SmartExecutionLib.SigMode.ERC1271, element.mandate.destOps
-        );
+        Types.Operation memory destOpsOperation =
+            SmartExecutionLib.encode(SmartExecutionLib.SigMode.ERC1271, element.mandate.destOps);
 
         bytes32 preClaimOpsHash = this.jump_hashEIP712(preClaimOpsOperation);
         bytes32 destOpsHash = this.jump_hashEIP712(destOpsOperation);
@@ -178,8 +190,51 @@ contract BaseTest is CompactEnvironment {
         enableData.expires = block.timestamp + 1;
         enableData.nonce = 1;
 
-        env.emissary.mock_setConfig(
-            account, env.emissaryId, env.lockTag, IStatelessValidator(validatorAddr), config.validatorConfig
-        );
+        env.emissary
+            .mock_setConfig(
+                account,
+                env.emissaryId,
+                env.lockTag,
+                IStatelessValidator(validatorAddr),
+                config.validatorConfig
+            );
+    }
+
+    // Helper function to compute the chain-agnostic EIP-712 digest
+    // Replicates Solady's _hashTypedDataSansChainId for IntentExecutor
+    function _hashTypedDataSansChainId(bytes32 structHash) internal view returns (bytes32 digest) {
+        // Domain type hash without chain ID: keccak256("EIP712Domain(string name,string
+        // version,address verifyingContract)")
+        bytes32 DOMAIN_TYPEHASH_SANS_CHAIN_ID =
+            0x91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766;
+
+        // IntentExecutor domain name and version
+        string memory name = "IntentExecutor";
+        string memory version = "v0.0.1";
+
+        bytes32 nameHash = keccak256(bytes(name));
+        bytes32 versionHash = keccak256(bytes(version));
+        address verifyingContract = address(env.intentExecutor);
+
+        console2.log("nameHash:");
+        console2.logBytes32(nameHash);
+        console2.log("versionHash:");
+        console2.logBytes32(versionHash);
+
+        // Compute domain separator using assembly to match Solady exactly
+        assembly {
+            let m := mload(0x40)
+            mstore(0x00, DOMAIN_TYPEHASH_SANS_CHAIN_ID)
+            mstore(0x20, nameHash)
+            mstore(0x40, versionHash)
+            mstore(0x60, verifyingContract)
+            // Compute the digest.
+            mstore(0x20, keccak256(0x00, 0x80)) // Store the domain separator.
+            mstore(0x00, 0x1901) // Store "\x19\x01".
+            mstore(0x40, structHash) // Store the struct hash.
+            digest := keccak256(0x1e, 0x42)
+            mstore(0x40, m) // Restore the free memory pointer.
+            mstore(0x60, 0) // Restore the zero pointer.
+        }
     }
 }
