@@ -1,9 +1,15 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
 import "../Base.t.sol";
+import { IETHRegistrarController } from "src/interfaces/IENSRegistrarController.sol";
 
 contract FlowTest is BaseTest {
     function flow() public {
+        // TODO: Add missing variables: signature, adapter
+
         // Frontend prepares registration
-        Registeration memory registration = Registration({
+        IETHRegistrarController.Registration memory registration = IETHRegistrarController.Registration({
             label: "foobar",
             owner: env.eoa.addr,
             duration: 2 years,

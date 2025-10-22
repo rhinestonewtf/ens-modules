@@ -82,11 +82,11 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function _createOwnersWithExpiration(address[] memory addrs, uint48 expiration)
         internal
         pure
-        returns (OwnableValidator.Owner[] memory)
+        returns (ENSValidator.Owner[] memory)
     {
-        OwnableValidator.Owner[] memory ownersWithExp = new OwnableValidator.Owner[](addrs.length);
+        ENSValidator.Owner[] memory ownersWithExp = new ENSValidator.Owner[](addrs.length);
         for (uint256 i = 0; i < addrs.length; i++) {
-            ownersWithExp[i] = OwnableValidator.Owner({ addr: addrs[i], expiration: expiration });
+            ownersWithExp[i] = ENSValidator.Owner({ addr: addrs[i], expiration: expiration });
         }
         return ownersWithExp;
     }
@@ -100,12 +100,12 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should add owners
         // it should emit event
 
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0); //0
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0); //0
             // = no expiration
         bytes memory data = abi.encode(_threshold, ownersWithExp);
 
         vm.expectEmit(true, true, true, true);
-        emit OwnableValidator.ModuleInitialized(address(this));
+        emit ENSValidator.ModuleInitialized(address(this));
 
         validator.onInstall(data);
 
@@ -124,7 +124,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should set owners with expiration timestamps
 
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp =
+        ENSValidator.Owner[] memory ownersWithExp =
             _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
 
@@ -140,7 +140,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should revert
         test_OnInstallWhenOwnersIncludeNoDuplicates();
 
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
 
         vm.expectRevert();
@@ -149,7 +149,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     function test_OnInstallRevertWhen_ThresholdIsZero() public {
         // it should revert
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
         bytes memory data = abi.encode(0, ownersWithExp);
 
         vm.expectRevert();
@@ -161,7 +161,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         address[] memory singleOwner = new address[](1);
         singleOwner[0] = _owners[0];
 
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(singleOwner, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(singleOwner, 0);
         bytes memory data = abi.encode(2, ownersWithExp); // threshold > owners.length
 
         vm.expectRevert();
@@ -216,7 +216,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     function test_UpdateConfigRevertWhen_ModuleIsNotInitialized() public {
         // it should revert
-        OwnableValidator.Owner[] memory emptyOwners = new OwnableValidator.Owner[](0);
+        ENSValidator.Owner[] memory emptyOwners = new ENSValidator.Owner[](0);
         address[] memory emptyRemove = new address[](0);
 
         vm.expectRevert();
@@ -227,7 +227,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should update threshold
         test_OnInstallWhenOwnersIncludeNoDuplicates();
 
-        OwnableValidator.Owner[] memory emptyOwners = new OwnableValidator.Owner[](0);
+        ENSValidator.Owner[] memory emptyOwners = new ENSValidator.Owner[](0);
         address[] memory emptyRemove = new address[](0);
 
         validator.updateConfig(3, emptyOwners, emptyRemove);
@@ -244,7 +244,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         address[] memory newOwners = new address[](1);
         newOwners[0] = newOwner;
 
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(newOwners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(newOwners, 0);
         address[] memory emptyRemove = new address[](0);
 
         validator.updateConfig(_threshold, ownersWithExp, emptyRemove);
@@ -260,7 +260,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         address[] memory ownersToRemove = new address[](1);
         ownersToRemove[0] = _owners[0];
 
-        OwnableValidator.Owner[] memory emptyOwners = new OwnableValidator.Owner[](0);
+        ENSValidator.Owner[] memory emptyOwners = new ENSValidator.Owner[](0);
 
         validator.updateConfig(_threshold, emptyOwners, ownersToRemove);
 
@@ -297,7 +297,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_ValidateUserOpRevertWhen_OwnerIsExpired() public {
         // it should return VALIDATION_FAILED
         uint48 expiration = uint48(block.timestamp + 1 hours);
-        OwnableValidator.Owner[] memory ownersWithExp =
+        ENSValidator.Owner[] memory ownersWithExp =
             _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
@@ -321,7 +321,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_ValidateUserOpWhenOwnerIsNotExpired() public {
         // it should return VALIDATION_SUCCESS
         uint48 expiration = uint48(block.timestamp + 1 hours);
-        OwnableValidator.Owner[] memory ownersWithExp =
+        ENSValidator.Owner[] memory ownersWithExp =
             _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
@@ -468,7 +468,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         duplicateAddrs[1] = _owners[0]; // duplicate
         duplicateAddrs[2] = _owners[1];
 
-        OwnableValidator.Owner[] memory duplicateOwners =
+        ENSValidator.Owner[] memory duplicateOwners =
             _createOwnersWithExpiration(duplicateAddrs, 0);
 
         bytes32 hash = keccak256("hash");
@@ -481,7 +481,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     function test_ValidateSignatureWithDataWhenThresholdIsNotSet() public {
         // it should return false
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
 
         bytes32 hash = keccak256("hash");
         bytes memory signatures = "";
@@ -493,7 +493,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     function test_ValidateSignatureWithDataWhenTheSignaturesAreNotValid() public {
         // it should return false
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
 
         bytes32 hash = keccak256("hash");
         bytes memory signature1 = _signHash(999, hash);
@@ -507,7 +507,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
 
     function test_ValidateSignatureWithDataWhenUniqueSignaturesAreLessThanThreshold() public {
         // it should return false
-        OwnableValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
+        ENSValidator.Owner[] memory ownersWithExp = _createOwnersWithExpiration(_owners, 0);
 
         bytes32 hash = keccak256("hash");
         bytes memory signature1 = _signHash(_ownerPks[0], hash);
@@ -524,10 +524,10 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
         // it should return true
         // Manually create sorted owners to ensure proper order
         // Sorted order: 0x2B5A (pk2), 0x6813 (pk3), 0x7E5F (pk1)
-        OwnableValidator.Owner[] memory ownersWithExp = new OwnableValidator.Owner[](3);
-        ownersWithExp[0] = OwnableValidator.Owner({ addr: vm.addr(2), expiration: 0 }); // 0x2B5A...
-        ownersWithExp[1] = OwnableValidator.Owner({ addr: vm.addr(3), expiration: 0 }); // 0x6813...
-        ownersWithExp[2] = OwnableValidator.Owner({ addr: vm.addr(1), expiration: 0 }); // 0x7E5F...
+        ENSValidator.Owner[] memory ownersWithExp = new ENSValidator.Owner[](3);
+        ownersWithExp[0] = ENSValidator.Owner({ addr: vm.addr(2), expiration: 0 }); // 0x2B5A...
+        ownersWithExp[1] = ENSValidator.Owner({ addr: vm.addr(3), expiration: 0 }); // 0x6813...
+        ownersWithExp[2] = ENSValidator.Owner({ addr: vm.addr(1), expiration: 0 }); // 0x7E5F...
 
         bytes32 hash = keccak256("hash");
         // Note: validateSignatureWithData does NOT use ECDSA.toEthSignedMessageHash
@@ -549,12 +549,12 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_GetOwners() public {
         // it should return all owners with expiration
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp =
+        ENSValidator.Owner[] memory ownersWithExp =
             _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);
 
-        OwnableValidator.Owner[] memory retrievedOwners = validator.getOwners(address(this));
+        ENSValidator.Owner[] memory retrievedOwners = validator.getOwners(address(this));
         assertEq(retrievedOwners.length, _owners.length);
 
         for (uint256 i = 0; i < retrievedOwners.length; i++) {
@@ -593,7 +593,7 @@ contract OwnableValidatorTest is RhinestoneModuleKit, Test {
     function test_GetOwnerExpiration() public {
         // it should return the expiration timestamp
         uint48 expiration = uint48(block.timestamp + 1 days);
-        OwnableValidator.Owner[] memory ownersWithExp =
+        ENSValidator.Owner[] memory ownersWithExp =
             _createOwnersWithExpiration(_owners, expiration);
         bytes memory data = abi.encode(_threshold, ownersWithExp);
         validator.onInstall(data);

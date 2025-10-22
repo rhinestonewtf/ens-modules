@@ -1,7 +1,20 @@
-import "@rhinestone/compact-utils/src/tests/Environment.sol";
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import {
+    CompactEnvironment,
+    ModuleKitHelpers,
+    TestHelperLib,
+    Element,
+    Mandate
+} from "@rhinestone/compact-utils/src/tests/Environment.sol";
+import { AccountInstance } from "modulekit/ModuleKit.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
 import { ENSValidator } from "src/validator/ENSValidator.sol";
 import { MODULE_TYPE_VALIDATOR } from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
+import { IPermit2IntentExecutor } from "@rhinestone/compact-utils/src/executor/interfaces/IPermit2Intent.sol";
+import { Types } from "@rhinestone/compact-utils/src/types/OrderTypes.sol";
+import { SmartExecutionLib } from "@rhinestone/compact-utils/src/common/SmartExecutionLib.sol";
 
 contract BaseTest is CompactEnvironment {
     using ModuleKitHelpers for *;
@@ -27,19 +40,19 @@ contract BaseTest is CompactEnvironment {
         // Instantiate MockENS with token1 as the payment token
         ens = new MockENS(address(env.token1));
 
-        // Instantiate OwnableValidator (multisig)
+        // Instantiate ENSValidator (multisig)
         multisig = new ENSValidator();
 
-        // Install the ownable validator multisig on smartAccount1
-        OwnableValidator.Owner[] memory ownersWithExpiration = new OwnableValidator.Owner[](1);
-        ownersWithExpiration[0] = OwnableValidator.Owner({ addr: brownerECDSA.addr, expiration: 0 }); //0
-            // = no expiration
+        // Install the ENS validator multisig on smartAccount1
+        ENSValidator.Owner[] memory ownersWithExpiration = new ENSValidator.Owner[](1);
+        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); // 0 = no expiration
 
         bytes memory initData = abi.encode(1, ownersWithExpiration); // threshold of 1
-        env.smartAccount1
-            .installModule({
-                moduleTypeId: MODULE_TYPE_VALIDATOR, module: address(multisig), data: initData
-            });
+        env.smartAccount1.installModule({
+            moduleTypeId: MODULE_TYPE_VALIDATOR,
+            module: address(multisig),
+            data: initData
+        });
     }
 
     function _getEIP712Stubs_Permit2TargetOps(
