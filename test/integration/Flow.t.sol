@@ -6,6 +6,18 @@ import { IETHRegistrarController } from "src/interfaces/IENSRegistrarController.
 import { Execution } from "modulekit/integrations/ERC7579Exec.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
 import { Target } from "@rhinestone/compact-utils/src/types/TheCompactStructs.sol";
+import {
+    IntentExecutorAdapter
+} from "@rhinestone/compact-utils/src/adapters/IntentExecutorAdapter.sol";
+import {
+    IStandaloneIntentExecutor
+} from "@rhinestone/compact-utils/src/executor/interfaces/IStandaloneIntent.sol";
+import { Types } from "@rhinestone/compact-utils/src/types/OrderTypes.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
+import "forge-std/console2.sol";
+import {
+    EIP712Lib
+} from "@rhinestone/compact-utils/src/executor/StandaloneIntent/lib/EIP712Lib.sol";
 
 contract FlowTest is BaseTest {
     using TestHelperLib for *;
@@ -96,22 +108,121 @@ contract FlowTest is BaseTest {
         );
 
         // Execute with proper signature
+        // simulate a fill transfer
+        env.token1.mint(hca.account, 0.01 ether);
         _fill(namechain, new bytes[](0), adapterCalldatas);
 
         // Verify that the commit was actually executed on the MockENS contract
         uint256 commitmentTimestamp = ens.commitments(commitHash);
         assertGt(commitmentTimestamp, 0, "Commitment should have been recorded");
-        assertEq(commitmentTimestamp, block.timestamp, "Commitment timestamp should match current block");
+        assertEq(
+            commitmentTimestamp, block.timestamp, "Commitment timestamp should match current block"
+        );
 
-        // Register Intent
-        // samechain intent with browserECDSA as signer
-        //
+        // Registration Intent using standalone multichain ops on namechain
+        // Need to wait MIN_COMMITMENT_AGE before registering
+        vm.warp(block.timestamp + 1 minutes + 1);
 
-        // claim on origin chain
+        Execution[] memory registrationExec = new Execution[](2);
+        registrationExec[0] = Execution({
+            target: address(env.token1),
+            value: 0,
+            callData: abi.encodeCall(IERC20.approve, (address(ens), type(uint256).max))
+        });
+        registrationExec[1] = Execution({
+            target: address(ens),
+            value: 0,
+            callData: abi.encodeCall(MockENS.registerWithERC20, (registration))
+        });
 
-        // create fill that sends funds to HCA
+        // Create MultiChainOps for standalone execution
+        IStandaloneIntentExecutor.MultiChainOps memory multichainOps =
+            IStandaloneIntentExecutor.MultiChainOps({
+                account: hca.account,
+                chainIndex: 0,
+                otherChains: new bytes32[](0), // No other chains
+                nonce: 1,
+                ops: registrationExec.toOperation(SmartExecutionLib.SigMode.ERC1271),
+                signature: "" // Will be filled after signing
+            });
 
-        // fill samechain
+        // Hash the multichain ops (must compute on namechain since that's where it will execute)
+        vm.chainId(namechain);
+        bytes32 multichainHash = this.hashMultiChainOps(multichainOps);
+
+        // Compute the chain-agnostic digest for signing (same as executor will validate)
+        bytes32 regDigest = _hashTypedDataSansChainId(multichainHash);
+
+        // Sign with browserECDSA (raw signature + validator address for ERC1271)
+        bytes memory regEcdsaSig = _signHashRaw(browserECDSA, regDigest);
+        multichainOps.signature = abi.encodePacked(address(multisig), regEcdsaSig);
+
+        // Prepare adapter calldata for IntentExecutor
+        // encode() only encodes the parameters, not the selector
+        bytes memory regExecutorCalldata = abi.encode(multichainOps);
+
+        bytes[] memory regAdapterCalldatas = new bytes[](1);
+        regAdapterCalldatas[0] = abi.encodeCall(
+            adapter.handleFill_intentExecutor_executeMultichainOps, (regExecutorCalldata)
+        );
+
+        // Execute on namechain (already on namechain from hashing above)
+        _fill(namechain, new bytes[](0), regAdapterCalldatas);
+
+        // Verify registration was successful
+        bytes32 labelhash = keccak256(bytes(registration.label));
+        address nameOwner = ens.ownerOf(uint256(labelhash));
+        assertEq(
+            nameOwner, registration.owner, "ENS name should be registered to the correct owner"
+        );
+    }
+
+    // Helper function to hash MultiChainOps
+    function hashMultiChainOps(IStandaloneIntentExecutor.MultiChainOps calldata multichainOps)
+        external
+        view
+        returns (bytes32)
+    {
+        (bytes32 hash,,,) = EIP712Lib.hashAndDecode(multichainOps);
+        return hash;
+    }
+
+    // Helper function to compute the chain-agnostic EIP-712 digest
+    // Replicates Solady's _hashTypedDataSansChainId for IntentExecutor
+    function _hashTypedDataSansChainId(bytes32 structHash) internal view returns (bytes32 digest) {
+        // Domain type hash without chain ID: keccak256("EIP712Domain(string name,string
+        // version,address verifyingContract)")
+        bytes32 DOMAIN_TYPEHASH_SANS_CHAIN_ID =
+            0x91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766;
+
+        // IntentExecutor domain name and version
+        string memory name = "IntentExecutor";
+        string memory version = "v0.0.1";
+
+        bytes32 nameHash = keccak256(bytes(name));
+        bytes32 versionHash = keccak256(bytes(version));
+        address verifyingContract = address(env.intentExecutor);
+
+        console2.log("nameHash:");
+        console2.logBytes32(nameHash);
+        console2.log("versionHash:");
+        console2.logBytes32(versionHash);
+
+        // Compute domain separator using assembly to match Solady exactly
+        assembly {
+            let m := mload(0x40)
+            mstore(0x00, DOMAIN_TYPEHASH_SANS_CHAIN_ID)
+            mstore(0x20, nameHash)
+            mstore(0x40, versionHash)
+            mstore(0x60, verifyingContract)
+            // Compute the digest.
+            mstore(0x20, keccak256(0x00, 0x80)) // Store the domain separator.
+            mstore(0x00, 0x1901) // Store "\x19\x01".
+            mstore(0x40, structHash) // Store the struct hash.
+            digest := keccak256(0x1e, 0x42)
+            mstore(0x40, m) // Restore the free memory pointer.
+            mstore(0x60, 0) // Restore the zero pointer.
+        }
     }
 
     // uint256 notarizedChain = chains.originChain1;

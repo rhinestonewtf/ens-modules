@@ -65,9 +65,10 @@ contract BaseTest is CompactEnvironment {
         // Deploy the IntentExecutorAdapter
         adapter = new IntentExecutorAdapter(address(env.router), address(env.intentExecutor));
 
-        // Install the adapter for both function selectors on the router
+        // Install the adapter for all three function selectors on the router
         _setFillRoute(adapter.handleFill_intentExecutor_handleCompactTargetOps.selector, address(adapter));
         _setFillRoute(adapter.handleFill_intentExecutor_handlePermit2TargetOps.selector, address(adapter));
+        _setFillRoute(adapter.handleFill_intentExecutor_executeMultichainOps.selector, address(adapter));
     }
 
     function _getEIP712Stubs_Permit2TargetOps(
