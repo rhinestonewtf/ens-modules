@@ -25,6 +25,7 @@ import {
     IEmissary,
     IStatelessValidator
 } from "@rhinestone/compact-utils/src/emissary/Emissary.sol";
+import { console2 } from "forge-std/console2.sol";
 
 contract BaseTest is CompactEnvironment {
     using ModuleKitHelpers for *;
@@ -56,7 +57,7 @@ contract BaseTest is CompactEnvironment {
 
         // Install the ENS validator multisig on smartAccount1
         ENSValidator.Owner[] memory ownersWithExpiration = new ENSValidator.Owner[](1);
-        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); // 0
+        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); //0
             // = no expiration
 
         bytes memory initData = abi.encode(1, ownersWithExpiration); // threshold of 1

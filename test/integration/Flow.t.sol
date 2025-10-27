@@ -186,42 +186,4 @@ contract FlowTest is BaseTest {
         (bytes32 hash,,,) = EIP712Lib.hashAndDecode(multichainOps);
         return hash;
     }
-
-    // Helper function to compute the chain-agnostic EIP-712 digest
-    // Replicates Solady's _hashTypedDataSansChainId for IntentExecutor
-    function _hashTypedDataSansChainId(bytes32 structHash) internal view returns (bytes32 digest) {
-        // Domain type hash without chain ID: keccak256("EIP712Domain(string name,string
-        // version,address verifyingContract)")
-        bytes32 DOMAIN_TYPEHASH_SANS_CHAIN_ID =
-            0x91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766;
-
-        // IntentExecutor domain name and version
-        string memory name = "IntentExecutor";
-        string memory version = "v0.0.1";
-
-        bytes32 nameHash = keccak256(bytes(name));
-        bytes32 versionHash = keccak256(bytes(version));
-        address verifyingContract = address(env.intentExecutor);
-
-        console2.log("nameHash:");
-        console2.logBytes32(nameHash);
-        console2.log("versionHash:");
-        console2.logBytes32(versionHash);
-
-        // Compute domain separator using assembly to match Solady exactly
-        assembly {
-            let m := mload(0x40)
-            mstore(0x00, DOMAIN_TYPEHASH_SANS_CHAIN_ID)
-            mstore(0x20, nameHash)
-            mstore(0x40, versionHash)
-            mstore(0x60, verifyingContract)
-            // Compute the digest.
-            mstore(0x20, keccak256(0x00, 0x80)) // Store the domain separator.
-            mstore(0x00, 0x1901) // Store "\x19\x01".
-            mstore(0x40, structHash) // Store the struct hash.
-            digest := keccak256(0x1e, 0x42)
-            mstore(0x40, m) // Restore the free memory pointer.
-            mstore(0x60, 0) // Restore the zero pointer.
-        }
-    }
 }
