@@ -10,7 +10,11 @@ library OwnerExpirationLib {
      * @param expirationTime The expiration timestamp (uint48)
      * @return packed The packed bytes32 value
      */
-    function toSetElement(address owner, uint48 expirationTime) internal pure returns (bytes32 packed) {
+    function toSetElement(address owner, uint48 expirationTime)
+        internal
+        pure
+        returns (bytes32 packed)
+    {
         assembly {
             // Shift address left by 96 bits (48 bits expiration + 48 bits unused)
             // Then OR with expiration shifted left by 48 bits
@@ -25,7 +29,11 @@ library OwnerExpirationLib {
      * @param expirationTime The expiration timestamp (uint48)
      * @return packed The packed bytes32 value
      */
-    function packWithExpiration(address owner, uint48 expirationTime) internal pure returns (bytes32 packed) {
+    function packWithExpiration(address owner, uint48 expirationTime)
+        internal
+        pure
+        returns (bytes32 packed)
+    {
         return toSetElement(owner, expirationTime);
     }
 
@@ -47,7 +55,11 @@ library OwnerExpirationLib {
      * @return owner The extracted owner address
      * @return expirationTime The extracted expiration timestamp
      */
-    function unpackOwnerAndExpiration(bytes32 packed) internal pure returns (address owner, uint48 expirationTime) {
+    function unpackOwnerAndExpiration(bytes32 packed)
+        internal
+        pure
+        returns (address owner, uint48 expirationTime)
+    {
         assembly {
             // Extract owner: shift right by 96 bits
             owner := shr(96, packed)

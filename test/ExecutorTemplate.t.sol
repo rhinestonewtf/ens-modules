@@ -25,7 +25,7 @@ contract ExecutorTemplateTest is RhinestoneModuleKit, Test {
         // instance = makeAccountInstance("ExecutorTemplate");
         // vm.deal(address(instance.account), 10 ether);
         // instance.installModule({
-        //     moduleTypeId: MODULE_TYPE_EXECUTOR, module: address(executor), data: ""
+        // moduleTypeId: MODULE_TYPE_EXECUTOR, module: address(executor), data: ""
         // });
     }
 
@@ -43,9 +43,9 @@ contract ExecutorTemplateTest is RhinestoneModuleKit, Test {
         // // Execute the call
         // // EntryPoint -> Account -> Executor -> Account -> Target
         // instance.exec({
-        //     target: address(executor),
-        //     value: 0,
-        //     callData: abi.encodeWithSelector(ExecutorTemplate.execute.selector, callData)
+        // target: address(executor),
+        // value: 0,
+        // callData: abi.encodeWithSelector(ExecutorTemplate.execute.selector, callData)
         // });
 
         // // Check if the balance of the target has increased

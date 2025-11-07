@@ -58,9 +58,7 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 
             // Threshold should be 0
             assertEq(
-                validator.thresholds(account),
-                0,
-                "Uninstalled account should have zero threshold"
+                validator.thresholds(account), 0, "Uninstalled account should have zero threshold"
             );
 
             // Owner count should be 0
@@ -111,9 +109,7 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 
                 assertGt(threshold, 0, "Initialized account must have threshold > 0");
                 assertGe(
-                    ownerCount,
-                    threshold,
-                    "Initialized account must have owner count >= threshold"
+                    ownerCount, threshold, "Initialized account must have owner count >= threshold"
                 );
             }
         }
@@ -155,7 +151,9 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 
             if (!validator.isInitialized(account)) {
                 assertEq(
-                    validator.thresholds(account), 0, "Uninitialized account must have zero threshold"
+                    validator.thresholds(account),
+                    0,
+                    "Uninitialized account must have zero threshold"
                 );
             }
         }
@@ -246,9 +244,7 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
                 // Expiration should be either type(uint48).max (permanent) or in the future
                 if (expiration != type(uint48).max) {
                     assertGe(
-                        expiration,
-                        block.timestamp,
-                        "Owner expiration should not be in the past"
+                        expiration, block.timestamp, "Owner expiration should not be in the past"
                     );
                 }
             }
@@ -392,8 +388,9 @@ contract ENSValidatorHandler is Test {
         // Create owners with permanent expiration
         ENSValidator.Owner[] memory owners = new ENSValidator.Owner[](ownerCount);
         for (uint256 i = 0; i < ownerCount; i++) {
-            owners[i] =
-                ENSValidator.Owner({ addr: ownerPool[i % ownerPool.length], expiration: type(uint48).max });
+            owners[i] = ENSValidator.Owner({
+                addr: ownerPool[i % ownerPool.length], expiration: type(uint48).max
+            });
         }
 
         // Encode and install
@@ -457,7 +454,11 @@ contract ENSValidatorHandler is Test {
     }
 
     /// @notice Update owner expiration
-    function updateExpiration(uint256 accountSeed, uint256 ownerIndexSeed, uint256 newExpirationSeed)
+    function updateExpiration(
+        uint256 accountSeed,
+        uint256 ownerIndexSeed,
+        uint256 newExpirationSeed
+    )
         public
     {
         updateExpirationCalls++;
@@ -485,8 +486,9 @@ contract ENSValidatorHandler is Test {
 
         vm.prank(account);
         try validator.updateOwnerExpiration(ownerAddr, newExpiration) {
-            // Expiration updated successfully
-        } catch {
+        // Expiration updated successfully
+        }
+            catch {
             // Update failed, skip
         }
     }

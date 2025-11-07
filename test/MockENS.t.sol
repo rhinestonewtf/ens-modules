@@ -31,7 +31,11 @@ contract MockENSTest is Test {
         address owner,
         uint256 duration,
         bytes32 secret
-    ) internal pure returns (IETHRegistrarController.Registration memory) {
+    )
+        internal
+        pure
+        returns (IETHRegistrarController.Registration memory)
+    {
         bytes[] memory data = new bytes[](0);
         return IETHRegistrarController.Registration({
             label: label,
@@ -46,12 +50,8 @@ contract MockENSTest is Test {
     }
 
     function testMakeCommitment() public {
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            "alice",
-            alice,
-            365 days,
-            keccak256("secret")
-        );
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration("alice", alice, 365 days, keccak256("secret"));
 
         bytes32 commitment = ens.makeCommitment(registration);
         bytes32 expectedCommitment = keccak256(abi.encode(registration));
@@ -82,12 +82,8 @@ contract MockENSTest is Test {
     }
 
     function testRegister() public {
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            "alice",
-            alice,
-            365 days,
-            keccak256("secret")
-        );
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration("alice", alice, 365 days, keccak256("secret"));
 
         bytes32 commitment = ens.makeCommitment(registration);
 
@@ -110,12 +106,8 @@ contract MockENSTest is Test {
     }
 
     function testRegisterDeletesCommitment() public {
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            "bob",
-            bob,
-            365 days,
-            keccak256("secret2")
-        );
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration("bob", bob, 365 days, keccak256("secret2"));
 
         bytes32 commitment = ens.makeCommitment(registration);
 
@@ -139,12 +131,8 @@ contract MockENSTest is Test {
 
     function testRegisterStoresName() public {
         string memory label = "testname";
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            label,
-            alice,
-            365 days,
-            keccak256("secret3")
-        );
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration(label, alice, 365 days, keccak256("secret3"));
 
         bytes32 commitment = ens.makeCommitment(registration);
 
@@ -168,12 +156,8 @@ contract MockENSTest is Test {
 
     function testRegisterDifferentNames() public {
         // Register first name
-        IETHRegistrarController.Registration memory registration1 = _createRegistration(
-            "first",
-            alice,
-            365 days,
-            keccak256("secret1")
-        );
+        IETHRegistrarController.Registration memory registration1 =
+            _createRegistration("first", alice, 365 days, keccak256("secret1"));
 
         bytes32 commitment1 = ens.makeCommitment(registration1);
         vm.prank(alice);
@@ -186,12 +170,8 @@ contract MockENSTest is Test {
         ens.register{ value: 100 wei }(registration1);
 
         // Register second name
-        IETHRegistrarController.Registration memory registration2 = _createRegistration(
-            "second",
-            bob,
-            365 days,
-            keccak256("secret2")
-        );
+        IETHRegistrarController.Registration memory registration2 =
+            _createRegistration("second", bob, 365 days, keccak256("secret2"));
 
         bytes32 commitment2 = ens.makeCommitment(registration2);
         vm.prank(bob);
@@ -213,13 +193,16 @@ contract MockENSTest is Test {
         assertEq(ens.tokenURI(uint256(labelhash2)), "second");
     }
 
-    function testFuzzMakeCommitment(string memory label, address owner, uint256 duration, bytes32 secret) public {
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            label,
-            owner,
-            duration,
-            secret
-        );
+    function testFuzzMakeCommitment(
+        string memory label,
+        address owner,
+        uint256 duration,
+        bytes32 secret
+    )
+        public
+    {
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration(label, owner, duration, secret);
 
         bytes32 commitment = ens.makeCommitment(registration);
         bytes32 expectedCommitment = keccak256(abi.encode(registration));
@@ -227,18 +210,21 @@ contract MockENSTest is Test {
         assertEq(commitment, expectedCommitment);
     }
 
-    function testFuzzCommitAndRegister(string memory label, address owner, uint256 duration, bytes32 secret) public {
+    function testFuzzCommitAndRegister(
+        string memory label,
+        address owner,
+        uint256 duration,
+        bytes32 secret
+    )
+        public
+    {
         vm.assume(owner != address(0));
         vm.assume(bytes(label).length > 0);
 
         vm.deal(owner, 1 ether);
 
-        IETHRegistrarController.Registration memory registration = _createRegistration(
-            label,
-            owner,
-            duration,
-            secret
-        );
+        IETHRegistrarController.Registration memory registration =
+            _createRegistration(label, owner, duration, secret);
 
         bytes32 commitment = ens.makeCommitment(registration);
 
