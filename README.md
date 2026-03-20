@@ -15,9 +15,9 @@ Smart account infrastructure for ENS hardware-backed signers, built on [Nexus](h
        ▼                                        ▼
 ┌──────────────┐                         ┌──────────────┐
 │ HCA (impl)   │ ◀── delegated calls ──  │              │
-│ extends Nexus│                          │              │
-│              │                          │              │
-│ • locked-down│                          └──────────────┘
+│ extends Nexus│                         │              │
+│              │                         │              │
+│ • locked-down│                         └──────────────┘
 │   module cfg │
 │ • NFT reject │
 │ • upgrade    │
