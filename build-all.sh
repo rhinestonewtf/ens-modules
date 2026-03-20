@@ -3,7 +3,7 @@ set -e
 export FOUNDRY_WARNINGS=off
 
 CONTRACTS=(
-    "src/validator/ENSValidator.sol"
+    "src/hca-module/HCAModule.sol"
     "src/mocks/MockENS.sol"
     "src/mocks/MockRouter.sol"
 )
@@ -27,4 +27,4 @@ echo "Artifact build process completed."
 
 
 forge selectors upload MockRouter
-forge selectors upload ENSValidator
+forge selectors upload HCAModule

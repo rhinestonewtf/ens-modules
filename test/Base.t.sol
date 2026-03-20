@@ -10,7 +10,8 @@ import {
 } from "@rhinestone/compact-utils/src/tests/Environment.sol";
 import { AccountInstance } from "modulekit/ModuleKit.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
-import { ENSValidator } from "src/validator/ENSValidator.sol";
+import { HCAModule } from "src/hca-module/HCAModule.sol";
+import { OwnableValidator } from "src/hca-module/base/OwnableValidator.sol";
 import { MODULE_TYPE_VALIDATOR } from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
 import {
     IPermit2IntentExecutor
@@ -31,7 +32,7 @@ contract BaseTest is CompactEnvironment {
     using ModuleKitHelpers for *;
 
     MockENS ens;
-    ENSValidator multisig;
+    HCAModule multisig;
     IntentExecutorAdapter adapter;
 
     Account browserECDSA;
@@ -52,13 +53,13 @@ contract BaseTest is CompactEnvironment {
         // Instantiate MockENS with token1 as the payment token
         ens = new MockENS(address(env.token1));
 
-        // Instantiate ENSValidator (multisig)
-        multisig = new ENSValidator();
+        // Instantiate HCAModule (multisig)
+        multisig = new HCAModule();
 
         // Install the ENS validator multisig on smartAccount1
-        ENSValidator.Owner[] memory ownersWithExpiration = new ENSValidator.Owner[](1);
-        ownersWithExpiration[0] = ENSValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); //0
-            // = no expiration
+        OwnableValidator.Owner[] memory ownersWithExpiration = new OwnableValidator.Owner[](1);
+        ownersWithExpiration[0] = OwnableValidator.Owner({ addr: browserECDSA.addr, expiration: 0 }); //0
+        // = no expiration
 
         bytes memory initData = abi.encode(1, ownersWithExpiration); // threshold of 1
         env.smartAccount1

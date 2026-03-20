@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+// solhint-disable func-name-mixedcase
+
+import { Test } from "forge-std/Test.sol";
+
+import { HCAContext } from "@ensdomains/contracts-v2/src/hca/HCAContext.sol";
+import { HCAEquivalence } from "@ensdomains/contracts-v2/src/hca/HCAEquivalence.sol";
+import { IHCAFactoryBasic } from "@ensdomains/contracts-v2/src/hca/interfaces/IHCAFactoryBasic.sol";
+import { MockHCAFactoryBasic } from "./mocks/MockHCAFactoryBasic.sol";
+
+contract HCAContextHarness is HCAContext {
+    constructor(IHCAFactoryBasic factory) HCAEquivalence(factory) { }
+
+    function exposedMsgSender() external view returns (address) {
+        return _msgSender();
+    }
+}
+
+contract HCAContextTest is Test {
+    MockHCAFactoryBasic factory;
+    HCAContextHarness harness;
+
+    address user = address(0x1111);
+    address hca = address(0xAAAA);
+    address owner = address(0xBEEF);
+
+    function setUp() public {
+        factory = new MockHCAFactoryBasic();
+        harness = new HCAContextHarness(factory);
+    }
+
+    function test_constructor_sets_factory() public view {
+        assertEq(address(harness.HCA_FACTORY()), address(factory));
+    }
+
+    function test_msgSender_calls_HCAEquivalence() public {
+        vm.prank(user);
+        vm.expectCall(
+            address(factory), abi.encodeWithSelector(factory.getAccountOwner.selector, user)
+        );
+        address sender = harness.exposedMsgSender();
+        assertEq(sender, user);
+    }
+}

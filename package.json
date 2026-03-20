@@ -36,7 +36,11 @@
     "solmate": "github:transmissions11/solmate",
     "tstorish": "github:ProjectOpenSea/tstorish",
     "FreshCryptoLib": "github:rdubois-crypto/FreshCryptoLib",
-    "@openzeppelin/contracts": "^5.3.0"
+    "@openzeppelin/contracts": "^5.3.0",
+    "@ensdomains/contracts-v2": "github:zeroknots/ens-contracts-v2#42002d5a0c725a781833e020fd934f702636fb54",
+    "@rhinestone/nexus": "link:../nexus-rhinestone",
+    "@biconomy/composability": "github:bcnmy/composability#v1.0.0",
+    "@openzeppelin/contracts-upgradeable": "^5.3.0"
   },
   "files": [
     "src",

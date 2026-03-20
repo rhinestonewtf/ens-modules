@@ -4,31 +4,32 @@ pragma solidity ^0.8.25;
 import { Test } from "forge-std/Test.sol";
 import { StdInvariant } from "forge-std/StdInvariant.sol";
 import { console } from "forge-std/console.sol";
-import { ENSValidator } from "src/validator/ENSValidator.sol";
+import { HCAModule } from "src/hca-module/HCAModule.sol";
+import { OwnableValidator } from "src/hca-module/base/OwnableValidator.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
 import { LibSort } from "solady/utils/LibSort.sol";
 
 /**
- * @title ENSValidatorInvariantTest
- * @notice Invariant tests for ENSValidator focusing on:
+ * @title HCAModuleInvariantTest
+ * @notice Invariant tests for HCAModule focusing on:
  *         - Installation/uninstallation state consistency
  *         - Configuration change tracking
  *         - Owner expiration enforcement
  *         - Threshold constraints
  */
-contract ENSValidatorInvariantTest is StdInvariant, Test {
+contract HCAModuleInvariantTest is StdInvariant, Test {
     using LibSort for *;
 
-    ENSValidator public validator;
-    ENSValidatorHandler public handler;
+    HCAModule public validator;
+    HCAModuleHandler public handler;
 
     // Track state for invariant checking
     mapping(address => uint256) public expectedThresholds;
     mapping(address => uint256) public expectedOwnerCounts;
 
     function setUp() public {
-        validator = new ENSValidator();
-        handler = new ENSValidatorHandler(validator);
+        validator = new HCAModule();
+        handler = new HCAModuleHandler(validator);
 
         // Target the handler for invariant testing
         targetContract(address(handler));
@@ -204,7 +205,7 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 
             if (!validator.isInitialized(account)) continue;
 
-            ENSValidator.Owner[] memory owners = validator.getOwners(account);
+            OwnableValidator.Owner[] memory owners = validator.getOwners(account);
             uint256 ownerCount = validator.getOwnersCount(account);
 
             // Length should match
@@ -236,7 +237,7 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 
             if (!validator.isInitialized(account)) continue;
 
-            ENSValidator.Owner[] memory owners = validator.getOwners(account);
+            OwnableValidator.Owner[] memory owners = validator.getOwners(account);
 
             for (uint256 j = 0; j < owners.length; j++) {
                 uint48 expiration = owners[j].expiration;
@@ -329,11 +330,11 @@ contract ENSValidatorInvariantTest is StdInvariant, Test {
 }
 
 /**
- * @title ENSValidatorHandler
- * @notice Handler contract for fuzzing ENSValidator operations
+ * @title HCAModuleHandler
+ * @notice Handler contract for fuzzing HCAModule operations
  */
-contract ENSValidatorHandler is Test {
-    ENSValidator public validator;
+contract HCAModuleHandler is Test {
+    HCAModule public validator;
 
     // Track accounts for invariant checking
     address[] public installedAccounts;
@@ -356,7 +357,7 @@ contract ENSValidatorHandler is Test {
     // Owner pool for fuzzing
     address[] public ownerPool;
 
-    constructor(ENSValidator _validator) {
+    constructor(HCAModule _validator) {
         validator = _validator;
 
         // Create a pool of owner addresses
@@ -386,9 +387,9 @@ contract ENSValidatorHandler is Test {
         uint256 ownerCount = bound(ownerCountSeed, threshold, 10);
 
         // Create owners with permanent expiration
-        ENSValidator.Owner[] memory owners = new ENSValidator.Owner[](ownerCount);
+        OwnableValidator.Owner[] memory owners = new OwnableValidator.Owner[](ownerCount);
         for (uint256 i = 0; i < ownerCount; i++) {
-            owners[i] = ENSValidator.Owner({
+            owners[i] = OwnableValidator.Owner({
                 addr: ownerPool[i % ownerPool.length], expiration: type(uint48).max
             });
         }
@@ -442,7 +443,7 @@ contract ENSValidatorHandler is Test {
         uint256 ownerCount = validator.getOwnersCount(account);
         uint256 newThreshold = bound(newThresholdSeed, 1, ownerCount);
 
-        ENSValidator.Owner[] memory emptyOwners = new ENSValidator.Owner[](0);
+        OwnableValidator.Owner[] memory emptyOwners = new OwnableValidator.Owner[](0);
         address[] memory emptyRemove = new address[](0);
 
         vm.prank(account);
@@ -470,7 +471,7 @@ contract ENSValidatorHandler is Test {
 
         if (!validator.isInitialized(account)) return;
 
-        ENSValidator.Owner[] memory owners = validator.getOwners(account);
+        OwnableValidator.Owner[] memory owners = validator.getOwners(account);
         if (owners.length == 0) return;
 
         uint256 ownerIndex = bound(ownerIndexSeed, 0, owners.length - 1);
@@ -514,8 +515,8 @@ contract ENSValidatorHandler is Test {
         // Skip if already an owner
         if (validator.isOwner(account, newOwnerAddr)) return;
 
-        ENSValidator.Owner[] memory newOwners = new ENSValidator.Owner[](1);
-        newOwners[0] = ENSValidator.Owner({ addr: newOwnerAddr, expiration: type(uint48).max });
+        OwnableValidator.Owner[] memory newOwners = new OwnableValidator.Owner[](1);
+        newOwners[0] = OwnableValidator.Owner({ addr: newOwnerAddr, expiration: type(uint48).max });
 
         address[] memory emptyRemove = new address[](0);
         uint256 currentThreshold = validator.thresholds(account);
@@ -539,7 +540,7 @@ contract ENSValidatorHandler is Test {
 
         if (!validator.isInitialized(account)) return;
 
-        ENSValidator.Owner[] memory owners = validator.getOwners(account);
+        OwnableValidator.Owner[] memory owners = validator.getOwners(account);
         if (owners.length <= 1) return; // Can't remove last owner
 
         uint256 ownerIndex = bound(ownerIndexSeed, 0, owners.length - 1);
@@ -553,7 +554,7 @@ contract ENSValidatorHandler is Test {
             currentThreshold = newOwnerCount;
         }
 
-        ENSValidator.Owner[] memory emptyOwners = new ENSValidator.Owner[](0);
+        OwnableValidator.Owner[] memory emptyOwners = new OwnableValidator.Owner[](0);
         address[] memory ownersToRemove = new address[](1);
         ownersToRemove[0] = ownerToRemove;
 
