@@ -87,6 +87,11 @@ contract HCA is Nexus {
         revert NoModuleChangeAllowed();
     }
 
+    /// @notice Returns the account implementation ID.
+    function accountId() external pure override returns (string memory) {
+        return "ens-hca.1.0.0";
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // Internal Functions
     ////////////////////////////////////////////////////////////////////////
