@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import { Test } from "forge-std/Test.sol";
-import { OwnerExpirationLib } from "../src/validator/OwnerExpirationLib.sol";
+import { OwnerExpirationLib } from "../src/hca-module/base/lib/OwnerExpirationLib.sol";
 
 contract OwnerExpirationLibTest is Test {
     using OwnerExpirationLib for *;

@@ -23,6 +23,12 @@ solarray/=node_modules/solarray/src/
 @prb/math/=node_modules/@prb/math/src/
 tstorish/=node_modules/tstorish/src/
 
+nexus/=node_modules/@rhinestone/nexus/contracts/
+excessively-safe-call/=node_modules/@excessivelySafeCall/src/
+composability/=node_modules/@biconomy/composability/contracts/
+erc7739Validator/=node_modules/erc7739-validator-base/
+@ensdomains/contracts-v2/=node_modules/@ensdomains/contracts-v2/contracts/
+
 @webauthn/=node_modules/webauthn-sol/src/
 FreshCryptoLib/=node_modules/FreshCryptoLib/solidity/src
 node_modules/webauthn-sol/src/:openzeppelin-contracts/=node_modules/@openzeppelin/

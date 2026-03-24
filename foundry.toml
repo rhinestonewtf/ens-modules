@@ -1,25 +1,112 @@
 [profile.default]
-evm_version = "cancun"
+#evm_version = "cancun"
+evm_version = "prague"
+ffi = true
 src = "src"
 out = "out"
-script = "script"
-libs = ["node_modules"]
 via-ir = true
-fs_permissions = [{ access = "read", path = "out-optimized" }, { access = "read-write", path = "gas_calculations" }]
+cbor_metadata = true
+gas_reports = ["Router", "TheComact", "SameChainRoute", "SameChainArbiter"]
+script = "script"
+libs = ["node_modules", "lib"]
+fs_permissions = [{ access = "read", path = "artifacts" }, { access = "read-write", path = "gas_calculations" }, { access = "read-write", path = "./script/deployments" }, { access = "read", path = "./script" }, { access = "read", path = "." }]
 allow_paths = ["*", "/"]
 gas_limit = "18446744073709551615"
 memory_limit = 2147483648
+optimizer_runs = 10000
 verbosity = 3
+solc = "0.8.30"
+auto_detect_solc = false
+#optimizer_runs = 100
+bytecode_hash = 'none'
+#extra_output_files = ["irOptimized"]
+ignored_warnings_from = ["node_modules", "test"]
+
+# NOTE: use this profile to build the actual modules, reduces code size
+[profile.release]
+optimizer_runs = 500
+bytecode_hash = 'none'
+
+[profile.default.invariant]
+  call_override = false # Override unsafe external calls to perform reentrancy checks
+  depth = 10            # Number of calls executed in one run
+  fail_on_revert = true
+  runs = 50
+
+# Speed up compilation and tests during development
+[profile.lite]
+  optimizer = false
 
 [rpc_endpoints]
-mainnet = "${MAINNET_RPC_URL}" 
+local = "http://localhost:8545"
+mainnet = "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+optimism = "https://opt-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+optimism_sepolia = "https://opt-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+base = "https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+base_sepolia = "https://base-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+arbitrum = "https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+arbitrum_sepolia = "https://arb-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+polygon = "https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+polygon_amoy = "https://polygon-amoy.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+gnosis = "https://gnosis-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+bnb = "https://bnb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+bnb_testnet = "https://bnb-testnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+avalanche = "https://avax-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+avalanche_fuji = "https://avax-fuji.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+scroll = "https://scroll-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+scroll_sepolia = "https://scroll-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+sonic = "https://sonic-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+sonic_blaze = "https://sonic-blaze.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+fuse = "https://rpc.fuse.io"
+fuse_spark = "https://rpc.fusespark.io"
+odyssey = "https://odyssey.ithaca.xyz"
+garnet = "https://rpc.garnetchain.com"
+holesky = "https://holesky.drpc.org"
+berchain = "https://berchain-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+berachain_bartio = "https://berachain-bartio.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+blast = "https://blast-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+blast_sepolia = "https://blast-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+worldchain = "https://worldchain-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+worldchain_sepolia = "https://worldchain-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+abstract_testnet = "https://abstract-testnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+taiko = "https://taiko-mainnet.gateway.tenderly.co"
+taiko_hekla = "https://taiko-hekla.gateway.tenderly.co"
+beam = "https://build.onbeam.com/rpc"
+beam_testnet = "https://build.onbeam.com/rpc/testnet"
+monad_testnet = "https://testnet-rpc.monad.xyz"
+ambrosus = "https://network.ambrosus.io"
+ambrosus_test = "https://network.ambrosus-test.io"
+iota = "https://json-rpc.evm.iotaledger.net"
+iota_testnet = "https://json-rpc.evm.testnet.iotaledger.net"
+soneium = "https://rpc.soneium.org"
+soneium_minato = "https://rpc.minato.soneium.org"
+carrot = "https://carrot.megaeth.com/rpc"
+mantle = "https://rpc.mantle.xyz"
+mantle_testnet = "https://rpc.testnet.mantle.xyz"
+ink = "https://ink-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+ink_sepolia = "https://ink-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+linea = "https://linea-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+linea_sepolia = "https://linea-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+unichain_sepolia = "https://unichain-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+zora = "https://zora-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+zora_sepolia = "https://zora-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+plasma = "https://plasma-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+hyperevm = "https://hyperliquid-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+hyperevm_testnet = "https://rpc.hyperliquid-testnet.xyz/evm"
+
 
 [fmt]
 bracket_spacing = true
 int_types = "long"
-line_length = 100
+line_length = 140
 multiline_func_header = "all"
 number_underscore = "thousands"
 quote_style = "double"
 tab_width = 4
 wrap_comments = true
+
+[etherscan]
+arbitrum = { key = "${TENDERLY_API_KEY}", url = "https://api.tenderly.co/api/v1/account/rhinestone/project/chain-abstraction/etherscan/verify" }
+optimism = { key = "${TENDERLY_API_KEY}", url = "https://api.tenderly.co/api/v1/account/rhinestone/project/chain-abstraction/etherscan/verify/network/10" }
+base = { key = "${TENDERLY_API_KEY}", url = "https://api.tenderly.co/api/v1/account/rhinestone/project/chain-abstraction/etherscan/verify/network/8453" }

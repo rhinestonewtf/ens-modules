@@ -2,12 +2,12 @@
 pragma solidity ^0.8.23;
 
 import "forge-std/Script.sol";
-import { ENSValidator } from "src/validator/ENSValidator.sol";
+import { HCAModule } from "src/hca-module/HCAModule.sol";
 import { MockENS } from "src/mocks/MockENS.sol";
 import { console2 } from "forge-std/console2.sol";
 
 /// @title DeployENSScript
-/// @notice Deployment script for ENSValidator and MockENS contracts
+/// @notice Deployment script for HCAModule and MockENS contracts
 contract DeployENSScript is Script {
     function run() public {
         // Get private key for deployment
@@ -27,9 +27,9 @@ contract DeployENSScript is Script {
             console.log("Skipping MockENS deployment (no MOCK_TOKEN set)");
         }
 
-        // Deploy ENSValidator
-        ENSValidator ensValidator = new ENSValidator();
-        console.log("ENSValidator deployed at:", address(ensValidator));
+        // Deploy HCAModule
+        HCAModule ensValidator = new HCAModule();
+        console.log("HCAModule deployed at:", address(ensValidator));
 
         vm.stopBroadcast();
 
@@ -38,7 +38,7 @@ contract DeployENSScript is Script {
         if (token != address(0)) {
             console.log("MockENS:", address(mockENS));
         }
-        console.log("ENSValidator:", address(ensValidator));
+        console.log("HCAModule:", address(ensValidator));
         console.log("========================\n");
     }
 }
