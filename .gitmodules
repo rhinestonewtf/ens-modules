@@ -1,0 +1,3 @@
+[submodule "lib/erc7739Validator"]
+	path = lib/erc7739Validator
+	url = https://github.com/erc7579/erc7739Validator

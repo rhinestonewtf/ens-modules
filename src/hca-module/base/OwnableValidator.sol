@@ -11,6 +11,7 @@ import {
     MODULE_TYPE_STATELESS_VALIDATOR as TYPE_STATELESS_VALIDATOR
 } from "modulekit/module-bases/utils/ERC7579Constants.sol";
 import { OwnerExpirationLib } from "./lib/OwnerExpirationLib.sol";
+import { ERC7739Validator } from "erc7739Validator/ERC7739Validator.sol";
 
 /**
  * @title OwnerableValidator
@@ -48,7 +49,7 @@ import { OwnerExpirationLib } from "./lib/OwnerExpirationLib.sol";
  * - Invariant checks: Ensures threshold is always valid relative to owner count
  * - Owner count limits: Enforces MIN_OWNERS (1) and MAX_OWNERS (32) constraints
  */
-contract OwnableValidator is ERC7579ValidatorBase {
+contract OwnableValidator is ERC7579ValidatorBase, ERC7739Validator {
     using LibSort for *;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using OwnerExpirationLib for bytes32;
@@ -652,18 +653,23 @@ contract OwnableValidator is ERC7579ValidatorBase {
 
     /**
      * @notice Validates an EIP-1271 signature with the sender context
-     * @dev This function enables the smart account to validate off-chain signatures
-     *      It uses the raw hash without EIP-191 prefix, suitable for EIP-712 typed data
+     * @dev Routes through ERC-7739's nested EIP-712 / PersonalSign workflow to prevent
+     *      cross-account signature replay when one EOA owns multiple smart accounts.
+     *      The base contract takes care of:
+     *      - Detection probe (returns SUPPORTS_ERC7739_V1 when called with empty sig + magic hash)
+     *      - ERC-6492 wrapper unwrapping
+     *      - Signature malleability check
+     *      - Rebuilding the final hash via TypedDataSign or PersonalSign
+     *      The actual signature verification then lands in
+     * `_erc1271IsValidSignatureNowCalldata`
+     *      which delegates back to our existing multisig + expiration validator.
+     * @param sender The contract that called isValidSignature on the smart account
      * @param hash The hash of the data that was signed (typically an EIP-712 hash)
-     * @param data The signature data to validate
+     * @param data The signature data to validate (may be ERC-6492 wrapped)
      * @return bytes4 EIP1271_SUCCESS (0x1626ba7e) if valid, EIP1271_FAILED (0xffffffff) otherwise
-     * @custom:security Unlike validateUserOp, this uses the RAW hash without EIP-191 prefix
-     *                  This is correct for EIP-712 signatures which include their own domain
-     * separator
-     *                  msg.sender (the account) is used for config lookup
      */
     function isValidSignatureWithSender(
-        address,
+        address sender,
         bytes32 hash,
         bytes calldata data
     )
@@ -672,15 +678,30 @@ contract OwnableValidator is ERC7579ValidatorBase {
         override
         returns (bytes4)
     {
-        // Use raw hash for EIP-712 structured data signatures
-        // No EIP-191 prefix needed since EIP-712 has its own protection via domain separator
-        bool isValid = _validateSignatureWithConfig(msg.sender, hash, data);
+        return _erc1271IsValidSignatureWithSender(sender, hash, _erc1271UnwrapSignature(data));
+    }
 
-        // Return standardized EIP-1271 magic values
-        if (isValid) {
-            return EIP1271_SUCCESS;
-        }
-        return EIP1271_FAILED;
+    /**
+     * @dev ERC-7739 hook: validate a signature against the stored owner config.
+     *      Called by the ERC7739Validator base after it has finished rewrapping `hash`
+     *      into either the TypedDataSign or PersonalSign final digest. At this point
+     *      `msg.sender` is the smart account whose config we look up, matching the
+     *      semantics of the original isValidSignatureWithSender path.
+     * @param hash The final hash (already nested-EIP-712 wrapped by the base contract)
+     * @param signature The raw signature(s) to verify (no appended ERC-7739 metadata —
+     *                  the base contract has already truncated it)
+     * @return bool True iff threshold is met by valid, non-expired owners
+     */
+    function _erc1271IsValidSignatureNowCalldata(
+        bytes32 hash,
+        bytes calldata signature
+    )
+        internal
+        view
+        override
+        returns (bool)
+    {
+        return _validateSignatureWithConfig(msg.sender, hash, signature);
     }
 
     /**
