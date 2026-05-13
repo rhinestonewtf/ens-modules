@@ -1,6 +1,6 @@
-# ENS Hardware-Controlled Accounts (HCA)
+# ENS Hidden Contract Accounts (HCA)
 
-Smart account infrastructure for ENS hardware-backed signers, built on [Nexus](https://github.com/rhinestonewtf/rhinestone-nexus) (ERC-7579 / ERC-4337).
+Smart account infrastructure for ENS Hidden Contract Accounts, built on [Nexus](https://github.com/rhinestonewtf/rhinestone-nexus) (ERC-7579 / ERC-4337).
 
 ## Architecture
 

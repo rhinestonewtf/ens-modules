@@ -8,11 +8,10 @@ import { Nexus } from "nexus/Nexus.sol";
 import { IHCAFactory } from "@ensdomains/contracts-v2/src/hca/interfaces/IHCAFactory.sol";
 import { IHCARevertNFTSelectors } from "./interfaces/IHCARevertNFTSelectors.sol";
 
-/// @title HCA - Hardware-Controlled Account
+/// @title HCA - Hidden Contract Account
 /// @notice A Nexus-based smart account restricted to a single immutable validator and
 /// factory-approved upgrades. Modules cannot be uninstalled once configured, enforcing a
-/// locked-down account model
-///         suitable for hardware-backed signers.
+/// locked-down account model for Hidden Contract Accounts.
 contract HCA is Nexus {
     /// @notice The factory that deployed this account, used to authorize upgrades.
     IHCAFactory private immutable _HCA_FACTORY;
